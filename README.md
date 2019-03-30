@@ -1,6 +1,3 @@
-# CandyCrush
-Hasti Sharifi
-UIN = 660606821
 
 Please run the index.html file with a browser, preferabely chrome.
 
