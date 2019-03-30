@@ -1,0 +1,111 @@
+/*body{*/
+    /*padding: 10px;*/
+/*}*/
+.btn{
+    margin:5px !important;
+}
+#gameTitle1{
+    font-weight: bold;
+    color: crimson;
+}
+#gameTitle2{
+    font-weight: bold;
+    color: crimson;
+}
+.mybtn{
+    background-color: green !important;
+    border-color: gainsboro !important;
+    color: white !important;
+}
+
+.disabled{
+    background-color: gainsboro !important;
+    border-color: gainsboro !important;
+    color: black !important;
+}
+.enabled{
+    background-color: green !important;
+    border-color: gainsboro !important;
+    color: white !important;
+}
+.container{
+    padding: 10px;
+    margin: auto;
+    margin-top: 100px;
+}
+.center{
+    display: flex;
+    /*align-content: center;*/
+    justify-content: center;
+    margin: 0 auto;
+    text-align: center;
+
+}
+
+
+.pname{
+    margin-top: 50px;
+    text-align: center;
+}
+
+#name-form{
+    width: 100px;
+    display: inline;
+}
+
+#gridTable{
+    width: 320px !important;
+    height: 320px !important;
+}
+
+
+.candy {
+    text-align: center;
+    border: 2px solid #ffffff;
+    padding: 0;
+    margin: 0;
+    white-space: nowrap;
+}
+
+.light-candy{
+    color: black;
+}
+
+.dark-candy{
+    color: white;
+}
+
+.invisible-candy{
+    background-color: white;
+    color: white;
+}
+
+.full{
+    width: 100%;
+}
+
+.control-key{
+    width: 60px;
+    height: 50px;
+    align-content: center !important;
+    text-align: center !important;
+    font-size: 1.4rem;
+}
+
+.main-column{
+    padding: 5px;
+    margin-top: 30px;
+}
+
+.decsription{
+    color: darkgray;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+img{
+    padding: 0;
+    margin: 0;
+    object-fit: cover;
+}

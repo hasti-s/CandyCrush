@@ -1,0 +1,419 @@
+<!--
+CandyCrush
+Your Name: Hasti Sharifi
+Collaborators: Candu Crush skeleton code at https://drive.google.com/open?id=1EN6LoyX5zsbCdX271MhNyM1RikL5RaMI, I also discussed this project with Pantea Habibi and Prithvi Sengupta.
+-->
+<!DOCTYPE html>
+<html>
+<!--
+/* Copyright (c) 2017 MIT 6.813/6.831 course staff, all rights reserved.
+ * Redistribution of original or derived work requires permission of course staff.
+ */
+-->
+
+<head>
+    <meta charset="utf-8">
+    <title>CandyCrush</title>
+
+    <!-- Load style sheets -->
+    <link rel="stylesheet" href=
+            "https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.css">
+
+    <link rel="stylesheet" href="mainLayout.css">
+
+    <!-- Use mobile-aware viewport -->
+    <meta name="viewport" content=
+            "width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Load any supplemental Javascript libraries here -->
+    <script src=
+                    "https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <script src=
+                    "https://cdnjs.cloudflare.com/ajax/libs/seedrandom/2.4.2/seedrandom.js">
+    </script>
+    <script src="candy.js"></script>
+    <script src="board.js"></script>
+    <script src="rules.js"></script>
+
+    <script>
+
+        // By default, the first board loaded by your page will be the same
+        // each time you load (which is accomplished by "seeding" the random
+        // number generator. This makes testing (and grading!) easier!
+        Math.seedrandom(0);
+
+
+        // A short jQuery extension to read query parameters from the URL.
+        $.extend({
+            getUrlVars: function() {
+                var vars = [], pair;
+                var pairs = window.location.search.substr(1).split('&');
+                for (var i = 0; i < pairs.length; i++) {
+                    pair = pairs[i].split('=');
+                    vars.push(pair[0]);
+                    vars[pair[0]] = pair[1] &&
+                        decodeURIComponent(pair[1].replace(/\+/g, ' '));
+                }
+                return vars;
+            },
+            getUrlVar: function(name) {
+                return $.getUrlVars()[name];
+            }
+        });
+
+        // constants
+        var DEFAULT_BOARD_SIZE = 8;
+
+        // data model at global scope for easier debugging
+        var board;
+        var rules;
+
+        var rowLetter;
+        var colNumber;
+        // initialize board
+        if ($.getUrlVar('size') && $.getUrlVar('size') >= 3) {
+            board = new Board($.getUrlVar('size'));
+            DEFAULT_BOARD_SIZE = $.getUrlVar('size');
+            console.log(DEFAULT_BOARD_SIZE.type);
+        } else {
+            board = new Board(DEFAULT_BOARD_SIZE);
+            //console.log(DEFAULT_BOARD_SIZE);
+        }
+
+        // load a rule
+        rules = new Rules(board);
+
+        //A list of letters to simplify the assignments
+        var letters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v'];
+
+        // Final initialization entry point: the Javascript code inside this block
+        // runs at the end of start-up when the page has finished loading.
+        $(document).ready(function()
+        {
+            rules.prepareNewGame();
+            for(i = 0 ; i < DEFAULT_BOARD_SIZE ; i++){
+                var tempString = "<tr>";
+                for(j = 0; j < DEFAULT_BOARD_SIZE ; j++){
+                    if (board.getCandyAt(i, j).color != "yellow" && board.getCandyAt(i, j).color != "orange") {
+                        tempString += "<td class='candy dark-candy' style='background-color:" + board.getCandyAt(i, j).color + ";'>";
+                        tempString += "<img src='graphics\\" + board.getCandyAt(i, j).color + "-candy.png'" + " alt=" + letters[i] + (j + 1).toString() + " height='" + (Math.round(300/DEFAULT_BOARD_SIZE)-3).toString() +"'" + " width='" + (Math.round(300/DEFAULT_BOARD_SIZE)-3).toString() +"'>";
+                        tempString += "</td>";
+                    }else {
+                        tempString += "<td class='candy light-candy' style='background-color:" + board.getCandyAt(i, j).color + ";'>";
+                        tempString += "<img src='graphics\\" + board.getCandyAt(i, j).color + "-candy.png'" + " alt=" + letters[i] + (j + 1).toString() + " height='" + (Math.round(300/DEFAULT_BOARD_SIZE)-3).toString() +"'" + " width='" + (Math.round(300/DEFAULT_BOARD_SIZE)-3).toString() +"'>";
+                        tempString += "</td>";
+                    }
+                }
+                tempString += "</tr>";
+                // console.log(tempString);
+                $('#grid').append(tempString);
+            }
+
+
+        });
+
+
+        /* Event Handlers */
+        // access the candy object with info.candy
+
+        // add a candy to the board
+        $(board).on('add', function(e, info)
+        {
+            $('#grid').find('tr:eq('+info.toRow+')').find('td:eq('+info.toCol+')').removeClass();
+            $('#grid').find('tr:eq('+info.toRow+')').find('td:eq('+info.toCol+')').empty();
+            $('#grid').find('tr:eq('+info.toRow+')').find('td:eq('+info.toCol+')').css('background-color',info.candy.color);
+            var tempString = "<img src='graphics\\" + info.candy.color + "-candy.png'" + " alt=" + letters[info.toRow] + (info.toCol + 1).toString() + " height='" + (Math.round(300/DEFAULT_BOARD_SIZE)-3).toString() +"'" + " width='" + (Math.round(300/DEFAULT_BOARD_SIZE)-3).toString() +"'>";
+            $('#grid').find('tr:eq('+info.toRow+')').find('td:eq('+info.toCol+')').append(tempString);
+            if (info.candy.color != 'yellow' && info.candy.color != 'orange')
+                $('#grid').find('tr:eq('+info.toRow+')').find('td:eq('+info.toCol+')').addClass("candy dark-candy");
+            else
+                $('#grid').find('tr:eq('+info.toRow+')').find('td:eq('+info.toCol+')').addClass("candy light-candy");
+        });
+
+        // move a candy on the board
+        $(board).on('move', function(e, info)
+        {
+            $('#grid').find('tr:eq('+info.toRow+')').find('td:eq('+info.toCol+')').removeClass();
+            $('#grid').find('tr:eq('+info.toRow+')').find('td:eq('+info.toCol+')').empty();
+            $('#grid').find('tr:eq('+info.toRow+')').find('td:eq('+info.toCol+')').css('background-color',info.candy.color);
+            var tempString = "<img src='graphics\\" + info.candy.color + "-candy.png'" + " alt=" + letters[info.toRow] + (info.toCol + 1).toString() + " height='" + (Math.round(300/DEFAULT_BOARD_SIZE)-3).toString() +"'" + " width='" + (Math.round(300/DEFAULT_BOARD_SIZE)-3).toString() +"'>";
+            $('#grid').find('tr:eq('+info.toRow+')').find('td:eq('+info.toCol+')').append(tempString);
+            if (info.candy.color != 'yellow' && info.candy.color != 'orange')
+                $('#grid').find('tr:eq('+info.toRow+')').find('td:eq('+info.toCol+')').addClass("candy dark-candy");
+            else
+                $('#grid').find('tr:eq('+info.toRow+')').find('td:eq('+info.toCol+')').addClass("candy light-candy");
+
+        });
+
+        // remove a candy from the board
+        $(board).on('remove', function(e, info)
+        {
+            $('#grid').find('tr:eq('+info.toRow+')').find('td:eq('+info.toCol+')').empty();
+            $('#grid').find('tr:eq('+info.toRow+')').find('td:eq('+info.toCol+')').removeClass();
+            $('#grid').find('tr:eq('+info.toRow+')').find('td:eq('+info.toCol+')').addClass("candy invisible-candy");
+        });
+
+        // move a candy on the board
+        $(board).on('scoreUpdate', function(e, info)
+        {
+            // Your code here. To be implemented in pset 2.
+        });
+        $(document).on('click', '#player-name-btn', function(evt)
+        {
+            //console.log('test');
+            var name = $('#player-name-input').val();
+            if(name != ''){
+                $('#player-name-btn').prop('value', 'Edit');
+                $('#player-name-btn').attr('id', 'edit');
+                $('#player-name-input').hide();
+                $('#player-name-output').css('display', 'block');
+                $('#player-name-output').text(name);
+
+            }
+        });
+
+        $(document).on('click', '#edit', function(evt)
+        {
+            //console.log('test');
+            var name = $('#player-name-output').text();
+            if(name != ''){
+                //console.log('test');
+                $('#edit').prop('value', 'Submit');
+                $('#edit').attr('id', 'player-name-btn');
+                $('#player-name-output').hide();
+                $('#player-name-input').css('display', 'block');
+                $('#player-name-intput').attr('placeholder', name);
+
+            }
+        });
+
+
+        // Button Events
+        $(document).on('click', '#newGame', function(evt)
+        {
+            //clear the old game
+            console.log('test')
+            $('#grid').empty();
+            board.clear();
+            //make new game
+            rules.prepareNewGame();
+            for(i = 0 ; i < DEFAULT_BOARD_SIZE ; i++){
+                var tempString = "<tr>";
+                for(j = 0; j < DEFAULT_BOARD_SIZE ; j++){
+                    if (board.getCandyAt(i, j).color != "yellow" && board.getCandyAt(i, j).color != "orange") {
+                        tempString += "<td class='candy dark-candy' style='background-color:" + board.getCandyAt(i, j).color + ";'>";
+                        tempString += "<img src='graphics\\" + board.getCandyAt(i, j).color + "-candy.png'" + " alt=" + letters[i] + (j + 1).toString() + " height='" + (Math.round(318/DEFAULT_BOARD_SIZE)-3).toString() +"'" + " width='" + ((318/DEFAULT_BOARD_SIZE)-3).toString() +"'>";
+                        tempString += "</td>";
+                    }else {
+                        tempString += "<td class='candy light-candy' style='background-color:" + board.getCandyAt(i, j).color + ";'>";
+                        tempString += "<img src='graphics\\" + board.getCandyAt(i, j).color + "-candy.png'" + " alt=" + letters[i] + (j + 1).toString() + " height='" + (Math.round(318/DEFAULT_BOARD_SIZE)-3).toString() +"'" + " width='" + ((318/DEFAULT_BOARD_SIZE)-3).toString() +"'>";
+                        tempString += "</td>";
+                    }
+                }
+                tempString += "</tr>";
+                //console.log(tempString);
+                $('#grid').append(tempString);
+            }
+
+            $('#control').val('');
+
+        });
+
+        $(document).on('click', "#crush-btn", function(evt)
+        {
+            var crushes = rules.getCandyCrushes();
+            if (crushes.length != 0)// && $('#crush-btn').hasClass('enabled'))
+            {
+                rules.removeCrushes([crushes[0]]);
+                setTimeout(function(){
+                    rules.moveCandiesDown();
+                    crushes = rules.getCandyCrushes();
+                    if(crushes.length == 0){
+                        $('#crush-btn').removeClass('enabled');
+                        $('#crush-btn').addClass('disabled');
+                    }
+                },500);
+            }
+            $('#control').focus();
+        });
+
+        // $( "#control" ).focus(function() {
+        //     var regex = new RegExp('([a-h]|[A-H])+[1-8]');
+        //     var cellToMove = this.val();
+        //     if()
+        // });
+
+        // keyboard events arrive here
+        $(document).on('keypress', function(evt) {
+            if(evt.key == 'n'){
+                $('#newGame').trigger( "click" );
+                $('#control').val('');
+
+            }
+            else if(evt.key == ' '){
+                if($('#crush-btn').hasClass('enabled')) {
+                    $('#crush-btn').trigger("click");
+                    $('#control').val('');
+                }
+            }
+        });
+
+        $(document).on('keyup', function(evt) {
+
+            var cellToMove = $( "#control" ).val().toLowerCase();
+            var regex = new RegExp('([a-v])+[1-9]+[0-9]?');
+            $('.control-key').removeClass('enabled');
+            $('.control-key').addClass('disabled');
+            if(regex.test(cellToMove)){
+                var chars = cellToMove.split('');
+
+                // $('.control-key').removeClass('enabled');
+                // $('.control-key').addClass('disabled');
+                rowLetter = chars[0].charCodeAt(0) - 97;
+                if(chars.length > 2){
+                    colNumber = (parseInt(chars[1]) - 1)*10 + parseInt(chars[2]) - 1;
+                }
+                else
+                    colNumber = parseInt(chars[1]) - 1;
+
+                if(colNumber > DEFAULT_BOARD_SIZE){
+                    $('.control-key').removeClass('enabled');
+                    $('.control-key').addClass('disabled');
+                    console.log("fuck this shit");
+                }else{
+
+                    if(rules.isMoveTypeValid(board.getCandyAt(rowLetter, colNumber), 'up'))
+                    {
+                        $('#key_up').removeClass('disabled');
+                        $('#key_up').addClass('enabled');
+                    }
+
+                    if(rules.isMoveTypeValid(board.getCandyAt(rowLetter, colNumber), 'right'))
+                    {
+                        $('#key_right').removeClass('disabled');
+                        $('#key_right').addClass('enabled');
+                    }
+
+                    if(rules.isMoveTypeValid(board.getCandyAt(rowLetter, colNumber), 'down'))
+                    {
+                        $('#key_down').removeClass('disabled');
+                        $('#key_down').addClass('enabled');
+                    }
+
+                    if(rules.isMoveTypeValid(board.getCandyAt(rowLetter, colNumber), 'left'))
+                    {
+                        $('#key_left').removeClass('disabled');
+                        $('#key_left').addClass('enabled');
+                    }
+            }}
+            else if(((cellToMove.split('')[0].charCodeAt(0) - 97) > DEFAULT_BOARD_SIZE-1 || (cellToMove.split('')[0].charCodeAt(0) - 97) < 0)){// || ((parseInt(chars[1]) - 1)*10 + parseInt(chars[1]) - 1) ) > DEFAULT_BOARD_SIZE {
+                $('#control').val('');
+                $('.control-key').removeClass('enabled');
+                $('.control-key').addClass('disabled');
+            }
+
+        });
+
+        $(document).on('click', '.control-key', function(evt){
+
+            $('#crush-btn').removeClass('disabled');
+            $('#crush-btn').addClass('enabled');
+            $('#control').val('');
+
+            $('#key_up').addClass('disabled');
+            $('#key_up').removeClass('enabled');
+            $('#key_right').addClass('disabled');
+            $('#key_right').removeClass('enabled');
+            $('#key_down').addClass('disabled');
+            $('#key_down').removeClass('enabled');
+            $('#key_left').addClass('disabled');
+            $('#key_left').removeClass('enabled');
+            // console.log(this.id.split('_')[1]);
+            board.flipCandies(board.getCandyAt(rowLetter, colNumber), board.getCandyInDirection(board.getCandyAt(rowLetter, colNumber), this.id.split('_')[1]));
+            // board.flipCandies(board.getCandyAt(1,1), board.getCandyAt(1,2));
+        });
+
+
+    </script>
+
+
+</head>
+
+<body>
+<div class="pname row">
+    <div class="col-md-4"></div>
+    <div class="col-md-4">
+        <div class="row">
+            <lable class="col-md-2" style="display: inline;">Name: </lable>
+            <input id="player-name-input" class="form-control col" type="text" style="display: inline;">
+            <div id="player-name-output" class="col" style="display: none;"></div>
+            <input id ="player-name-btn" class= "mybtn btn btn-primary col" type="button" value="Submit" style="display: inline;">
+        </div>
+    </div>
+    <div class="col-md-4"></div>
+</div>
+<div class="container">
+    <div class="row">
+        <div class="col-md-3 main-column" id="firstColumn">
+            <div>
+                <div class="">
+                    <h1 id = "gameTitle1" class="title bold text-center">Candy</h1>
+                    <h1 id = "gameTitle2" class="title bold text-center">Crush</h1>
+                </div>
+                <div class="">
+                    <input id="newGame" class="mybtn btn btn-primary form-control" type="button" value="New Game">
+                    <div class="decsription"><label>Or press "n"</label></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 center main-column" id="mainColumn"><div class="row full center">
+            <table id="gridTable">
+                <tbody id="grid">
+
+                </tbody>
+            </table>
+        </div></div>
+
+        <div class="col-md-3 main-column" id="lastColumn">
+            <div class="row"><div class="col">
+                <label>
+                    <h2 class="bold">Move: </h2>
+                </label>
+            </div>
+                <div class="col">
+                <input id="control" class="form-control" type="text">
+            </div></div>
+            <div class="center col">
+                <table>
+                    <tbody>
+                    <tr>
+                        <td></td>
+                        <td id="key_up" class="control-key mybtn btn btn-primary disabled">&uarr;</td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td id="key_left" class="control-key mybtn btn btn-primary disabled">&larr;</td>
+                        <td></td>
+                        <td id="key_right" class="control-key mybtn btn btn-primary disabled">&rarr;</td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td id="key_down" class="control-key mybtn btn btn-primary disabled">&darr;</td>
+                        <td></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div>
+                <input id="crush-btn" class="mybtn btn btn-primary disabled form-control" type="button" value="Crush Once">
+                <div class="decsription"><label class="des-text">Or press "Spacebar"</label></div>
+            </div>
+
+        </div>
+    </div> <!-- class="row" -->
+</div> <!-- class="container" -->
+
+</body>
+
+</html>
